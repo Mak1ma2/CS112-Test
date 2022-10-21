@@ -50,7 +50,7 @@ public class Dealer{
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         String list_of_cards_used = ""; 
         while( num > 0 ){ 
-            if( cards_name.size() < 6 ){ 
+            if( cards_name.size() < 10 ){ 
                 shuffle();  
                 list_of_cards_used = ""; 
             } 
