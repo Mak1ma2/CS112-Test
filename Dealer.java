@@ -31,40 +31,10 @@ public class Dealer{
         System.out.println("Waiting for client"); 
         Socket socket = server.accept();
         System.out.println("client accepted"); 
-        try{ 
-            TimeUnit.SECONDS.sleep(30);
-        }
-        catch( InterruptedException ex ){ 
-            ex.printStackTrace();
-        }
         int num = 500; 
         dos = new DataOutputStream(socket.getOutputStream()); 
         dis = new DataInputStream(socket.getInputStream());
-        String[]suits = {"S","H","D","C"};
-        for( String suit : suits ){ 
-            for( int i = 2 ; i < 15 ; i++ ){ // 11 = j, 12 = q, 13 = k, 14 = A
-                if(i == 11){ 
-                    cards_name.add("J"+suit); 
-                    cards_value.add( 10 ); 
-                }
-                else if(i==12){
-                    cards_name.add("Q"+suit); 
-                    cards_value.add(10);
-                }
-                else if(i==13){
-                    cards_name.add("K"+suit);
-                    cards_value.add(10);
-                }
-                else if(i==14){
-                    cards_name.add("A"+suit);
-                    cards_value.add(11);
-                }
-                else{
-                    cards_name.add(""+i+suit); 
-                    cards_value.add(i);
-                }
-            }
-        }
+        shuffle(); 
         dos.writeUTF( "login" ); 
         String line = dis.readUTF();
         String[]login = line.split(":"); // this works 
@@ -72,38 +42,47 @@ public class Dealer{
         ArrayList< String > used_cards = new ArrayList<>();
         ArrayList< Integer > used_cards_values = new ArrayList<>(); 
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
+        String list_of_cards_used = ""; 
         while( num > 0 ){ 
+            if( cards_name.size() < 4 ){ 
+                shuffle(); 
+            }
             int initial_random = (int)(Math.random() * cards_name.size());
             used_cards.add(cards_name.get(initial_random));  
             used_cards_values.add(cards_value.get(initial_random)); 
+            list_of_cards_used += ":" + cards_name.get(initial_random); 
             cards_name.remove(initial_random); 
             cards_value.remove(initial_random); 
             int secondary_random = (int)(Math.random() * cards_name.size()); 
             used_cards.add(cards_name.get(secondary_random)); 
+            list_of_cards_used += ":" + cards_name.get(secondary_random); 
             used_cards_values.add(cards_value.get(secondary_random)); 
             cards_name.remove(secondary_random); 
             cards_value.remove(secondary_random);
             int dealer_initial = (int)(Math.random() * cards_name.size()); 
-            dealer_used_values.add(cards_value.get(dealer_initial)); 
+            dealer_used_values.add(cards_value.get(dealer_initial));
+            list_of_cards_used += ":" + cards_name.get(dealer_initial);
             cards_name.remove(dealer_initial); 
             cards_value.remove(dealer_initial); 
             int dealer_secondary = (int)(Math.random() * cards_name.size()); 
             dealer_used_values.add(cards_value.get(dealer_secondary)); 
+            list_of_cards_used += ":" + cards_name.get(dealer_secondary); 
             cards_name.remove(dealer_secondary); 
             cards_value.remove(dealer_secondary); 
-            String used_card = ":";
+            String used_card = "";
             if( !used_cards.isEmpty() ){
                 for( int i = 0 ; i < used_cards.size() ; i++ ){ 
-                    used_card += used_cards.get(i) + ":"; 
+                    used_card += ":" + used_cards.get(i)  ; 
                 } 
             }
-            dos.writeUTF("bet:"+num+":All"+used_card); // everything went well until here 
+            dos.writeUTF("bet:"+num+":All"+list_of_cards_used); // everything went well until here 
             line = dis.readUTF(); 
             ArrayList< String > bet_str = new ArrayList<>(); 
             for( String bets : line.split( ":" )){ 
                 bet_str.add( bets ); 
             }
             int amount_bet = Integer.parseInt(bet_str.get( 1 )); // reads the bet find meaning that up until login everything worked 
+            num -= amount_bet; 
             bet_str.clear(); 
             int random = (int)(Math.random() * cards_name.size());
             int dealer_random = (int)(Math.random() * cards_name.size()); 
@@ -112,9 +91,9 @@ public class Dealer{
             }
             String list_of_cards = ""; // not working until here
             for( int j = 0 ; j < used_cards.size() ; j++ ){ 
-                list_of_cards += used_cards.get(j) + ":"; 
+                list_of_cards += ":" + used_cards.get(j) ;  
             }
-            dos.writeUTF("play:dealer:"+cards_name.get(random)+":you:"+list_of_cards);
+            dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+used_card);
             line = dis.readUTF(); 
             int valid = 0; 
             int dealer_valid = 0; 
@@ -146,10 +125,10 @@ public class Dealer{
                     }
                 }
                 if(line.equals("hit")){ 
-                    list_of_cards += cards_name.get(random); 
                     used_cards.add( cards_name.get(random) ); 
                     used_cards_values.add( cards_value.get(random) ); 
                     list_of_cards += ":" + cards_name.get(random); 
+                    list_of_cards_used += ":" + cards_name.get(random);  
                     valid += cards_value.get(random); 
                     cards_name.remove(random); 
                     cards_value.remove(random); 
@@ -172,28 +151,25 @@ public class Dealer{
                 }
                 if( valid == 21 && dealer_valid != 21 ){ 
                     dos.writeUTF( "status:win:you:blackjack"); 
-                    num += (amount_bet + (amount_bet / 2 )); 
+                    num += (amount_bet + (amount_bet + (amount_bet / 2 ))); 
                     early_break = false; 
                     break; 
                 }
                 else{
-                    dos.writeUTF("play:dealer:"+cards_name.get(random)+":you:"+list_of_cards);
+                    dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+list_of_cards);
                     line = dis.readUTF(); 
                 }
             }
             if( valid == dealer_valid ){ 
-                if( valid == 21 ){ 
-                    num = amount_bet; 
-                }
+                num += amount_bet; 
                 dos.writeUTF( "status:push:dealer:"+dealer_valid+":you:"+valid);   
             }
             if( 21 - valid < 21 - dealer_valid && early_break ){ 
                 dos.writeUTF( "status:win:dealer:"+dealer_valid+":you:"+valid); 
-                num += (amount_bet ); 
+                num += (2 * amount_bet); 
             }
             else if( 21 - dealer_valid < 21 - valid && early_break){ 
-                dos.writeUTF( "status:lose:dealer:"+dealer_valid+":you:"+valid);
-                num -= amount_bet; 
+                dos.writeUTF( "status:lose:dealer:"+dealer_valid+":you:"+valid); 
             }
             used_cards.clear(); 
             used_cards_values.clear(); 
@@ -203,5 +179,35 @@ public class Dealer{
             amount_bet = 0; 
         }
         dos.writeUTF( "done:No More Money" ); 
+    }
+
+    private static void shuffle(){ 
+        cards_name.clear(); 
+        cards_value.clear(); 
+        String[]suits = {"S","H","D","C"};
+        for( String suit : suits ){ 
+            for( int i = 2 ; i < 15 ; i++ ){ // 11 = j, 12 = q, 13 = k, 14 = A
+                if(i == 11){ 
+                    cards_name.add("J"+suit); 
+                    cards_value.add( 10 ); 
+                }
+                else if(i==12){
+                    cards_name.add("Q"+suit); 
+                    cards_value.add(10);
+                }
+                else if(i==13){
+                    cards_name.add("K"+suit);
+                    cards_value.add(10);
+                }
+                else if(i==14){
+                    cards_name.add("A"+suit);
+                    cards_value.add(11);
+                }
+                else{
+                    cards_name.add(""+i+suit); 
+                    cards_value.add(i);
+                }
+            }
+        }
     }
 }
