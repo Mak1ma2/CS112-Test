@@ -49,30 +49,41 @@ public class Dealer{
         ArrayList< Integer > used_cards_values = new ArrayList<>(); 
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         String list_of_cards_used = ""; 
-        int count =0 ; 
         while( num > 0 ){ 
-            if( cards_name.size() < 6 ){ 
+            if( cards_name.size() < 10 ){ 
                 shuffle();  
                 list_of_cards_used = ""; 
-            }
+            } 
             int initial_random = (int)(Math.random() * cards_name.size());
+            while( initial_random == cards_name.size() ){ 
+                initial_random = (int)(Math.random() * cards_name.size() ); 
+            }
             used_cards.add(cards_name.get(initial_random));  
             used_cards_values.add(cards_value.get(initial_random)); 
             list_of_cards_used += ":" + cards_name.get(initial_random); 
             cards_name.remove(initial_random); 
             cards_value.remove(initial_random); 
             int secondary_random = (int)(Math.random() * cards_name.size()); 
+            while( secondary_random == cards_name.size() ){ 
+                secondary_random = (int)(Math.random() * cards_name.size() ); 
+            }
             used_cards.add(cards_name.get(secondary_random)); 
             list_of_cards_used += ":" + cards_name.get(secondary_random); 
             used_cards_values.add(cards_value.get(secondary_random)); 
             cards_name.remove(secondary_random); 
             cards_value.remove(secondary_random);
             int dealer_initial = (int)(Math.random() * cards_name.size()); 
+            while( dealer_initial == cards_name.size() ){ 
+                dealer_initial = (int)(Math.random() * cards_name.size() ); 
+            }
             dealer_used_values.add(cards_value.get(dealer_initial));
             list_of_cards_used += ":" + cards_name.get(dealer_initial);
             cards_name.remove(dealer_initial); 
             cards_value.remove(dealer_initial); 
             int dealer_secondary = (int)(Math.random() * cards_name.size()); 
+            while( dealer_secondary == cards_name.size() ){ 
+                dealer_secondary = (int)(Math.random() * cards_name.size() ); 
+            }
             dealer_used_values.add(cards_value.get(dealer_secondary)); 
             list_of_cards_used += ":" + cards_name.get(dealer_secondary); 
             cards_name.remove(dealer_secondary); 
@@ -93,7 +104,13 @@ public class Dealer{
             num -= amount_bet; // num = 339 
             bet_str.clear();    
             int random = (int)(Math.random() * cards_name.size());
+            while( random == cards_name.size() ){ 
+                random = (int)(Math.random() * cards_name.size() ); 
+            }
             int dealer_random = (int)(Math.random() * cards_name.size()); 
+            while( dealer_random == cards_name.size() ){
+                dealer_random = (int)(Math.random() * cards_name.size()); 
+            }
             while( random == dealer_random ){ 
                 dealer_random = (int)(Math.random() * cards_name.size()); 
             }
@@ -137,11 +154,25 @@ public class Dealer{
                     used_cards_values.add( cards_value.get(random) ); 
                     list_of_cards += ":" + cards_name.get(random); 
                     list_of_cards_used += ":" + cards_name.get(random);  
-                    valid += cards_value.get(random); 
+                    if( valid + cards_value.get(random) > 21 && cards_value.get(random) == 11 ){ 
+                        valid += 1; 
+                    }
+                    else{ 
+                        valid += cards_value.get(random); 
+                    }
                     cards_name.remove(random); 
                     cards_value.remove(random); 
                     random = (int)(Math.random() * cards_name.size()); 
                     dealer_random = (int)(Math.random() * cards_name.size()); 
+                    while( random == dealer_random ){ 
+                        dealer_random = (int)(Math.random() * cards_name.size()); 
+                    }
+                    while( random == cards_name.size() ){ 
+                        random = (int)(Math.random() * cards_name.size() ); 
+                    }
+                    while( dealer_random == cards_name.size() ){ 
+                        dealer_random = (int)(Math.random() * cards_name.size() ); 
+                    }
                     while( random == dealer_random ){ 
                         dealer_random = (int)(Math.random() * cards_name.size()); 
                     }
@@ -150,6 +181,11 @@ public class Dealer{
                     dealer_valid += cards_value.get(dealer_random); 
                     cards_name.remove(dealer_random); 
                     cards_value.remove(dealer_random); 
+                }
+                else if( cards_value.get(dealer_random) == 11 ){ 
+                    dealer_valid += 1; 
+                    cards_name.remove( dealer_random ); 
+                    cards_value.remove( dealer_random ); 
                 }
                 if( valid > 21 ){ 
                     dos.writeUTF( "status:lose:you:"+valid); 
@@ -163,9 +199,20 @@ public class Dealer{
                     break; 
                 }
                 else{
+                    random = (int)(Math.random() * cards_name.size()); 
+                    dealer_random = (int)(Math.random() * cards_name.size()); 
+                    while( random == dealer_random ){ 
+                        dealer_random = (int)(Math.random() * cards_name.size()); 
+                    }
+                    while( random == cards_name.size() ){ 
+                        random = (int)(Math.random() * cards_name.size() ); 
+                    }
+                    while( dealer_random == cards_name.size() ){ 
+                        dealer_random = (int)(Math.random() * cards_name.size() ); 
+                    }
                     dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+list_of_cards);
-                    line = dis.readUTF(); 
                 }
+                line = dis.readUTF(); 
             }
             if( valid == dealer_valid ){ 
                 num += amount_bet; 
@@ -208,7 +255,7 @@ public class Dealer{
                 }
                 else if(i==14){
                     cards_name.add("A"+suit);
-                    cards_value.add(11);
+                    cards_value.add(11); 
                 }
                 else{
                     cards_name.add(""+i+suit); 
