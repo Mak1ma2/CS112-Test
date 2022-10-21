@@ -117,16 +117,34 @@ public class Dealer{
                     amount_bet *= 2; 
                 }
                 if( line.equals( "split" ) ){   // not going too deep because i have absolutely no idea what split does can't english 
+                // only split at the start, only if it's a pair (matches in value) <2 Ace no Ace and other face card> (if 2 ace then always split) 
+                // double the bet (splitting the bet) 
+                // adds a random card to each hand 
+                // both needs to end in one way or the other 
+                // same dealer's hand 
                     boolean same = false; 
-                    for( int i : used_cards_values ){ 
-                        if( used_cards_values.indexOf(i) == used_cards_values.lastIndexOf(i) ){ 
-                            same = true; 
-                        }
-                    }
-                    if( amount_bet * 2 > num || same ){ 
-                        dos.writeUTF( "done:cheat" ); 
+                    if( used_card.size() > 2 ){ 
+                        dos.writeUTF( "done:cheat more than 2 cards in deck"); 
                         break; 
                     }
+                    if( used_cards_values.get(0) == used_cards_values.get(1) ){
+                        same = true; 
+                    }
+                    if( amount_bet * 2 > num ){ 
+                        dos.writeUTF( "done:cheat invalid bet" ); 
+                        break; 
+                    }
+                    if( same == false ){ 
+                        dos.writeUTF( "done:cheat no same cards" ); 
+                        break; 
+                    }
+                    ArrayList< Integer > mock1 = new ArrayList<>(); 
+                    ArrayList< Integer > mock2 = new ArrayList<>(); 
+                    
+                    mock1.add( used_card_values.get(0)); 
+                    mock2.add( used_cards_values.get(1)); 
+                    split(mock1, dealer_used_values, line, list_of_cards, list_of_cards_used, num, amount_bet ); 
+                    split(mock2, dealer_used_values, line, list_of_cards, list_of_cards_used, num, amount_bet ); 
                 }
                 if(line.equals("hit") || line.equals( "double")){  
                     used_cards.add( cards_name.get(random) ); 
@@ -200,6 +218,99 @@ public class Dealer{
             amount_bet = 0; 
         }
         dos.writeUTF( "done:No More Money" ); 
+    }
+
+    private static void split( ArrayList< Integer > used_cards_values, ArrayList< Integer > dealer_used_values, String line, String list_of_cards, String list_of_cards_used, int num, int amount_bet ){ // line.equals( "split" ), num is the total amount player has, amount_bet is the total amount bet 
+    // this has been done in case tehre is another stand or double 
+        int valid = 0; 
+        int dealer_valid = 0; 
+        for( int x : used_cards_values ){ 
+            valid += x; 
+        }
+        for( int y : dealer_used_values ){ 
+            dealer_valid += y; 
+        }
+        boolean early_break = true;
+        while( !line.equals( "stand" ) ){
+            if( line.equals("double")){ 
+                if( amount_bet * 2 > num ){ 
+                    dos.writeUTF("done:cheat");
+                    break; 
+                }
+                amount_bet *= 2; 
+            }
+            if( line.equals( "split" ) ){   // not going too deep because i have absolutely no idea what split does can't english 
+                boolean same = false; 
+                if( used_card.size() > 2 ){ 
+                    dos.writeUTF( "done:cheat more than 2 cards in deck"); 
+                    break; 
+                }
+                if( used_cards_values.get(0) == used_cards_values.get(1) ){
+                    same = true; 
+                }
+                if( amount_bet * 2 > num ){ 
+                    dos.writeUTF( "done:cheat invalid bet" ); 
+                    break; 
+                }
+                if( same == false ){ 
+                    dos.writeUTF( "done:cheat no same cards" ); 
+                    break; 
+                }
+                split(used_cards_values, dealer_used_values, line, list_of_cards, list_of_cards_used, num, amount_bet ); 
+            }
+            if(line.equals("hit") || line.equals( "double")){  
+                used_cards.add( cards_name.get(random) ); 
+                used_cards_values.add( cards_value.get(random) ); 
+                list_of_cards += ":" + cards_name.get(random); 
+                list_of_cards_used += ":" + cards_name.get(random);  
+                if( valid + cards_value.get(random) > 21 && cards_value.get(random) == 11 ){ 
+                    valid += 1; 
+                }
+                else{ 
+                    valid += cards_value.get(random); 
+                }
+                cards_name.remove(random); 
+                cards_value.remove(random); 
+                random = randomize();  
+                dealer_random = randomize(); 
+                while( random == dealer_random ){ 
+                    dealer_random = randomize(); 
+                }
+            }
+            if( dealer_valid + cards_value.get(dealer_random) < 17 ){ 
+                dealer_valid += cards_value.get(dealer_random); 
+                cards_name.remove(dealer_random); 
+                cards_value.remove(dealer_random); 
+            }
+            else if( cards_value.get(dealer_random) == 11 ){ 
+                dealer_valid += 1; 
+                cards_name.remove( dealer_random ); 
+                cards_value.remove( dealer_random ); 
+            }
+            if( valid > 21 ){ 
+                dos.writeUTF( "status:lose:you:"+valid); 
+                early_break = false; 
+                break; 
+            }
+            if( valid == 21 && dealer_valid != 21 ){ 
+                dos.writeUTF( "status:win:you:blackjack"); 
+                num += (amount_bet + (amount_bet + (amount_bet / 2 ))); 
+                early_break = false; 
+                break; 
+            }
+            else{
+                if( line.equals( "double" ) ){ 
+                break; 
+                }
+                random = randomize(); 
+                dealer_random = randomize(); 
+                while( dealer_random == cards_name.size() ){ 
+                    dealer_random = randomize(); 
+                }
+                dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+list_of_cards);
+            }
+            line = dis.readUTF(); 
+        }
     }
 
     private static int randomize(){ 
