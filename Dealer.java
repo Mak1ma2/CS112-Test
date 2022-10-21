@@ -49,6 +49,7 @@ public class Dealer{
         ArrayList< Integer > used_cards_values = new ArrayList<>(); 
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         String list_of_cards_used = ""; 
+        int count =0 ; 
         while( num > 0 ){ 
             if( cards_name.size() < 6 ){ 
                 shuffle();  
@@ -79,7 +80,7 @@ public class Dealer{
             String used_card = "";
             if( !used_cards.isEmpty() ){
                 for( int i = 0 ; i < used_cards.size() ; i++ ){ 
-                    used_card += ":" + used_cards.get(i)  ; 
+                    used_card += ":" + used_cards.get(i); 
                 } 
             }
             dos.writeUTF("bet:"+num+":All"+list_of_cards_used); // everything went well until here 
@@ -132,6 +133,8 @@ public class Dealer{
                     }
                 }
                 if(line.equals("hit")){ 
+                    count++; 
+                    System.out.println( count + " hit!"); 
                     used_cards.add( cards_name.get(random) ); 
                     used_cards_values.add( cards_value.get(random) ); 
                     list_of_cards += ":" + cards_name.get(random); 
