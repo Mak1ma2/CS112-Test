@@ -50,7 +50,7 @@ public class Dealer{
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         String list_of_cards_used = ""; 
         while( num > 0 ){ 
-            if( cards_name.size() < 10 ){ 
+            if( cards_name.size() < 6 ){ 
                 shuffle();  
                 list_of_cards_used = ""; 
             } 
@@ -149,7 +149,7 @@ public class Dealer{
                         break; 
                     }
                 }
-                if(line.equals("hit")){  
+                if(line.equals("hit") || line.equals( "double")){  
                     used_cards.add( cards_name.get(random) ); 
                     used_cards_values.add( cards_value.get(random) ); 
                     list_of_cards += ":" + cards_name.get(random); 
@@ -199,6 +199,9 @@ public class Dealer{
                     break; 
                 }
                 else{
+                    if( line.equals( "double" ) ){ 
+                        break; 
+                    }
                     random = (int)(Math.random() * cards_name.size()); 
                     dealer_random = (int)(Math.random() * cards_name.size()); 
                     while( random == dealer_random ){ 
