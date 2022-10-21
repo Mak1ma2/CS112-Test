@@ -153,7 +153,6 @@ public class Dealer{
                 }
                 if( valid > 21 ){ 
                     dos.writeUTF( "status:lose:you:"+valid); 
-                    num -= amount_bet; 
                     early_break = false; 
                     break; 
                 }
