@@ -101,7 +101,7 @@ public class Dealer{
             for( int j = 0 ; j < used_cards.size() ; j++ ){ 
                 list_of_cards += ":" + used_cards.get(j) ;  
             }
-            dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+used_card);
+            dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you"+used_card);
             line = dis.readUTF(); 
             int valid = 0; 
             int dealer_valid = 0; 
