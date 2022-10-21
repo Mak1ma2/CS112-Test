@@ -132,9 +132,7 @@ public class Dealer{
                         break; 
                     }
                 }
-                if(line.equals("hit")){ 
-                    count++; 
-                    System.out.println( count + " hit!"); 
+                if(line.equals("hit")){  
                     used_cards.add( cards_name.get(random) ); 
                     used_cards_values.add( cards_value.get(random) ); 
                     list_of_cards += ":" + cards_name.get(random); 
