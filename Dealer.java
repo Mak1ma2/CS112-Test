@@ -31,6 +31,12 @@ public class Dealer{
         System.out.println("Waiting for client"); 
         Socket socket = server.accept();
         System.out.println("client accepted"); 
+        try{ 
+            TimeUnit.SECONDS.sleep(30);
+        }
+        catch( InterruptedException e ){
+            e.printStackTrace();
+        }
         int num = 500; 
         dos = new DataOutputStream(socket.getOutputStream()); 
         dis = new DataInputStream(socket.getInputStream());
@@ -44,8 +50,9 @@ public class Dealer{
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         String list_of_cards_used = ""; 
         while( num > 0 ){ 
-            if( cards_name.size() < 4 ){ 
-                shuffle(); 
+            if( cards_name.size() < 6 ){ 
+                shuffle();  
+                list_of_cards_used = ""; 
             }
             int initial_random = (int)(Math.random() * cards_name.size());
             used_cards.add(cards_name.get(initial_random));  
@@ -76,14 +83,14 @@ public class Dealer{
                 } 
             }
             dos.writeUTF("bet:"+num+":All"+list_of_cards_used); // everything went well until here 
-            line = dis.readUTF(); 
+            line = dis.readUTF(); // bet:339
             ArrayList< String > bet_str = new ArrayList<>(); 
             for( String bets : line.split( ":" )){ 
                 bet_str.add( bets ); 
             }
             int amount_bet = Integer.parseInt(bet_str.get( 1 )); // reads the bet find meaning that up until login everything worked 
-            num -= amount_bet; 
-            bet_str.clear(); 
+            num -= amount_bet; // num = 339 
+            bet_str.clear();    
             int random = (int)(Math.random() * cards_name.size());
             int dealer_random = (int)(Math.random() * cards_name.size()); 
             while( random == dealer_random ){ 
