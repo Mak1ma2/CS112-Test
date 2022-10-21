@@ -54,36 +54,24 @@ public class Dealer{
                 shuffle();  
                 list_of_cards_used = ""; 
             } 
-            int initial_random = (int)(Math.random() * cards_name.size());
-            while( initial_random == cards_name.size() ){ 
-                initial_random = (int)(Math.random() * cards_name.size() ); 
-            }
+            int initial_random = randomize(); 
             used_cards.add(cards_name.get(initial_random));  
             used_cards_values.add(cards_value.get(initial_random)); 
             list_of_cards_used += ":" + cards_name.get(initial_random); 
             cards_name.remove(initial_random); 
             cards_value.remove(initial_random); 
-            int secondary_random = (int)(Math.random() * cards_name.size()); 
-            while( secondary_random == cards_name.size() ){ 
-                secondary_random = (int)(Math.random() * cards_name.size() ); 
-            }
+            int secondary_random = randomize();
             used_cards.add(cards_name.get(secondary_random)); 
             list_of_cards_used += ":" + cards_name.get(secondary_random); 
             used_cards_values.add(cards_value.get(secondary_random)); 
             cards_name.remove(secondary_random); 
             cards_value.remove(secondary_random);
-            int dealer_initial = (int)(Math.random() * cards_name.size()); 
-            while( dealer_initial == cards_name.size() ){ 
-                dealer_initial = (int)(Math.random() * cards_name.size() ); 
-            }
+            int dealer_initial = randomize();
             dealer_used_values.add(cards_value.get(dealer_initial));
             list_of_cards_used += ":" + cards_name.get(dealer_initial);
             cards_name.remove(dealer_initial); 
             cards_value.remove(dealer_initial); 
-            int dealer_secondary = (int)(Math.random() * cards_name.size()); 
-            while( dealer_secondary == cards_name.size() ){ 
-                dealer_secondary = (int)(Math.random() * cards_name.size() ); 
-            }
+            int dealer_secondary = randomize();
             dealer_used_values.add(cards_value.get(dealer_secondary)); 
             list_of_cards_used += ":" + cards_name.get(dealer_secondary); 
             cards_name.remove(dealer_secondary); 
@@ -103,17 +91,8 @@ public class Dealer{
             int amount_bet = Integer.parseInt(bet_str.get( 1 )); // reads the bet find meaning that up until login everything worked 
             num -= amount_bet; // num = 339 
             bet_str.clear();    
-            int random = (int)(Math.random() * cards_name.size());
-            while( random == cards_name.size() ){ 
-                random = (int)(Math.random() * cards_name.size() ); 
-            }
-            int dealer_random = (int)(Math.random() * cards_name.size()); 
-            while( dealer_random == cards_name.size() ){
-                dealer_random = (int)(Math.random() * cards_name.size()); 
-            }
-            while( random == dealer_random ){ 
-                dealer_random = (int)(Math.random() * cards_name.size()); 
-            }
+            int random = randomize(); 
+            int dealer_random = randomize(); 
             String list_of_cards = ""; // not working until here
             for( int j = 0 ; j < used_cards.size() ; j++ ){ 
                 list_of_cards += ":" + used_cards.get(j) ;  
@@ -162,19 +141,10 @@ public class Dealer{
                     }
                     cards_name.remove(random); 
                     cards_value.remove(random); 
-                    random = (int)(Math.random() * cards_name.size()); 
-                    dealer_random = (int)(Math.random() * cards_name.size()); 
+                    random = randomize();  
+                    dealer_random = randomize(); 
                     while( random == dealer_random ){ 
-                        dealer_random = (int)(Math.random() * cards_name.size()); 
-                    }
-                    while( random == cards_name.size() ){ 
-                        random = (int)(Math.random() * cards_name.size() ); 
-                    }
-                    while( dealer_random == cards_name.size() ){ 
-                        dealer_random = (int)(Math.random() * cards_name.size() ); 
-                    }
-                    while( random == dealer_random ){ 
-                        dealer_random = (int)(Math.random() * cards_name.size()); 
+                        dealer_random = randomize(); 
                     }
                 }
                 if( dealer_valid + cards_value.get(dealer_random) < 17 ){ 
@@ -202,16 +172,10 @@ public class Dealer{
                     if( line.equals( "double" ) ){ 
                         break; 
                     }
-                    random = (int)(Math.random() * cards_name.size()); 
-                    dealer_random = (int)(Math.random() * cards_name.size()); 
-                    while( random == dealer_random ){ 
-                        dealer_random = (int)(Math.random() * cards_name.size()); 
-                    }
-                    while( random == cards_name.size() ){ 
-                        random = (int)(Math.random() * cards_name.size() ); 
-                    }
+                    random = randomize(); 
+                    dealer_random = randomize(); 
                     while( dealer_random == cards_name.size() ){ 
-                        dealer_random = (int)(Math.random() * cards_name.size() ); 
+                        dealer_random = randomize(); 
                     }
                     dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+list_of_cards);
                 }
@@ -236,6 +200,14 @@ public class Dealer{
             amount_bet = 0; 
         }
         dos.writeUTF( "done:No More Money" ); 
+    }
+
+    private static int randomize(){ 
+        int random = (int)(Math.random() * cards_name.size() ); 
+        while( random == cards_name.size() ){
+            random = (int)(Math.random() * cards_name.size() ); 
+        }
+        return random; 
     }
 
     private static void shuffle(){ 
