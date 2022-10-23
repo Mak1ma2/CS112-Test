@@ -144,9 +144,11 @@ public class Dealer{
                 // adds a random card to each hand 
                 // both needs to end in one way or the other 
                 // same dealer's hand 
+                System.out.println( "hit split!" ); 
                 boolean same = false; 
                 split_occured = false; 
-                if( used_cards_values.size() > 2 ){ 
+                String[]temp = used_card.split(":"); 
+                if( temp.length > 4 ){ 
                     dos.writeUTF( "done:cheat more than 2 cards in deck"); 
                     break; 
                 }
@@ -162,15 +164,28 @@ public class Dealer{
                     break; 
                 }
                 System.out.println( used_card ); 
-                String[]temp = used_card.split(":"); 
-                dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+temp[0]);
+                String mock = temp[1]; 
+                random = randomize();
+                mock += ":"+cards_name.get(random);
+                cards_name.remove(random);
+                cards_value.remove(random); 
+                dealer_random = randomize(); 
+                dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+mock);
                 line = dis.readUTF(); 
                 play(used_cards, used_cards_values, dealer_used_values); 
-                dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+temp[1]); 
+                num -= amount_bet; 
+                int random2 = randomize(); 
+                mock = temp[2] + ":" + cards_name.get(random2); 
+                cards_name.remove(random2); 
+                cards_value.remove(random2); 
+                dealer_random = randomize();
+                dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+mock); 
                 line = dis.readUTF(); 
                 play(used_cards, used_cards_values, dealer_used_values); 
+                break;
             }
             if(line.equals("hit") || line.equals( "double")){  
+                int random = randomize(); 
                 used_cards.add( cards_name.get(random) ); 
                 used_cards_values.add( cards_value.get(random) ); 
                 list_of_cards += ":" + cards_name.get(random); 
@@ -189,6 +204,12 @@ public class Dealer{
                     dealer_random = randomize(); 
                 }
             }
+            if( valid == 21 && dealer_valid != 21 ){ 
+                dos.writeUTF( "status:win:you:blackjack"); 
+                num += (amount_bet + (amount_bet + (amount_bet / 2 ))); 
+                early_break = false; 
+                break; 
+            }
             if( dealer_valid < 17 ){ 
                 if( cards_value.get(dealer_random) == 11 && dealer_valid + cards_value.get(dealer_random) > 21 ){ 
                     dealer_valid += 1;  
@@ -205,12 +226,6 @@ public class Dealer{
                 early_break = false; 
                 break; 
             }
-            if( valid == 21 && dealer_valid != 21 ){ 
-                dos.writeUTF( "status:win:you:blackjack"); 
-                num += (amount_bet + (amount_bet + (amount_bet / 2 ))); 
-                early_break = false; 
-                break; 
-            }
             else{
                 if( line.equals( "double" ) ){ 
                     break; 
@@ -223,6 +238,10 @@ public class Dealer{
                 dos.writeUTF("play:dealer:"+cards_name.get(random)+":you"+list_of_cards);
             }
             line = dis.readUTF(); 
+        }
+        if( valid > 21 && early_break ){ 
+            dos.writeUTF("status:lose:you:"+valid); 
+            early_break = false; 
         }
         while( dealer_valid < 17 ){ 
             if( cards_value.get(dealer_random) == 11 && dealer_valid + cards_value.get(dealer_random) > 21 ){ 
@@ -240,6 +259,7 @@ public class Dealer{
             dos.writeUTF( "status:push:dealer:"+dealer_valid+":you:"+valid);   
         }
         if( dealer_valid > 21 && early_break ){ 
+            num += (2*amount_bet); 
             dos.writeUTF( "status:win:dealer bust:"+dealer_valid+":you:"+valid); 
         } 
         else if( 21 - valid < 21 - dealer_valid && early_break ){ 
@@ -250,7 +270,7 @@ public class Dealer{
             dos.writeUTF( "status:lose:dealer:"+dealer_valid+":you:"+valid); 
         }
         valid = 0; 
-        dealer_valid = 0; 
+        dealer_valid = 0;  
     }
 
     private static int randomize(){ 
