@@ -128,6 +128,7 @@ public class Dealer{
         for( int y : dealer_used_values ){ 
             dealer_valid += y; 
         }
+        boolean split_occured = true; 
         boolean early_break = true; 
         while( !line.equals( "stand" ) ){
             if( line.equals("double")){ 
@@ -144,6 +145,7 @@ public class Dealer{
                 // both needs to end in one way or the other 
                 // same dealer's hand 
                 boolean same = false; 
+                split_occured = false; 
                 if( used_cards_values.size() > 2 ){ 
                     dos.writeUTF( "done:cheat more than 2 cards in deck"); 
                     break; 
@@ -198,7 +200,7 @@ public class Dealer{
                 cards_value.remove(dealer_random); 
                 dealer_random = randomize(); 
             }
-            if( valid > 21 ){ 
+            if( valid > 21 && split_occured ){ 
                 dos.writeUTF( "status:lose:you:"+valid); 
                 early_break = false; 
                 break; 
