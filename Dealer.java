@@ -33,8 +33,7 @@ public class Dealer{
     static String line = ""; 
     static int amount_bet; 
     static int random; 
-    static int dealer_random; 
-    static String used_card; 
+    static int dealer_random;  
     public static void main(String[]args) throws IOException, ClassNotFoundException, EOFException, SocketException{
         server = new ServerSocket(port);
         System.out.println("Waiting for client"); 
@@ -58,6 +57,10 @@ public class Dealer{
         ArrayList< Integer > used_cards_values = new ArrayList<>(); 
         ArrayList< Integer > dealer_used_values = new ArrayList<>(); 
         while( num > 0 ){ 
+            if( cards_name.size() < 20 ){ 
+                shuffle();  
+                list_of_cards_used = ""; 
+            }  
             int initial_random = randomize(); 
             used_cards.add(cards_name.get(initial_random));  
             used_cards_values.add(cards_value.get(initial_random)); 
@@ -80,14 +83,15 @@ public class Dealer{
             list_of_cards_used += ":" + cards_name.get(dealer_secondary); 
             cards_name.remove(dealer_secondary); 
             cards_value.remove(dealer_secondary); 
-            if( cards_name.size() < 20 ){ 
-                shuffle();  
-                list_of_cards_used = ""; 
-            }  
-            used_card = "";
+            String used_card = "";
             if( !used_cards.isEmpty() ){
                 for( int i = 0 ; i < used_cards.size() ; i++ ){ 
-                    used_card += ":" + used_cards.get(i); 
+                    if( i == 0 ){
+                        used_card += used_cards.get(i); 
+                    }
+                    else{
+                        used_card += ":"+used_cards.get(i) ; 
+                    }
                 } 
             }
             dos.writeUTF("bet:"+num+":All"+list_of_cards_used); // everything went well until here 
@@ -103,9 +107,9 @@ public class Dealer{
             random = randomize(); 
             bet_str.clear();    
             dealer_random = randomize(); 
-            dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you"+used_card);
+            dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+used_card);
             line = dis.readUTF(); 
-            play(used_cards, used_cards_values, dealer_used_values); 
+            play(used_cards, used_cards_values, dealer_used_values, used_card); 
             used_cards.clear(); 
             used_cards_values.clear(); 
             dealer_used_values.clear();
@@ -115,7 +119,7 @@ public class Dealer{
         dos.writeUTF("done:No More Money" );
     }
 
-    private static void play(ArrayList<String>used_cards,ArrayList<Integer>used_cards_values,ArrayList<Integer>dealer_used_values) throws IOException, EOFException, SocketException{
+    private static void play(ArrayList<String>used_cards,ArrayList<Integer>used_cards_values,ArrayList<Integer>dealer_used_values, String used_card) throws IOException, EOFException, SocketException{
         String list_of_cards = ""; // not working until here
         for( int j = 0 ; j < used_cards.size() ; j++ ){ 
             list_of_cards += ":" + used_cards.get(j) ;  
@@ -136,6 +140,7 @@ public class Dealer{
                     dos.writeUTF("done:cheat");
                     break; 
                 }
+                System.out.println( "double has been called!" ); 
                 amount_bet *= 2; 
             }
             if( line.equals( "split" ) ){   // not going too deep because i have absolutely no idea what split does can't english 
@@ -143,7 +148,7 @@ public class Dealer{
                 // double the bet (splitting the bet) 
                 // adds a random card to each hand 
                 // both needs to end in one way or the other 
-                // same dealer's hand 
+                // same dealer's hand  
                 System.out.println( "hit split!" ); 
                 boolean same = false; 
                 split_occured = false; 
@@ -164,24 +169,24 @@ public class Dealer{
                     break; 
                 }
                 System.out.println( used_card ); 
-                String mock = temp[1]; 
+                String mock = temp[0]+":"; 
                 random = randomize();
-                mock += ":"+cards_name.get(random);
+                mock += cards_name.get(random);
                 cards_name.remove(random);
                 cards_value.remove(random); 
                 dealer_random = randomize(); 
                 dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+mock);
                 line = dis.readUTF(); 
-                play(used_cards, used_cards_values, dealer_used_values); 
+                play(used_cards, used_cards_values, dealer_used_values, mock); 
                 num -= amount_bet; 
                 int random2 = randomize(); 
-                mock = temp[2] + ":" + cards_name.get(random2); 
+                mock = temp[1] + ":" + cards_name.get(random2); 
                 cards_name.remove(random2); 
                 cards_value.remove(random2); 
                 dealer_random = randomize();
                 dos.writeUTF("play:dealer:"+cards_name.get(dealer_random)+":you:"+mock); 
                 line = dis.readUTF(); 
-                play(used_cards, used_cards_values, dealer_used_values); 
+                play(used_cards, used_cards_values, dealer_used_values, mock); 
                 break;
             }
             if(line.equals("hit") || line.equals( "double")){  
