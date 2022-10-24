@@ -103,7 +103,6 @@ public class Dealer{
             }
             System.out.println(); 
             amount_bet = Integer.parseInt(bet_str.get( 1 )); // reads the bet find meaning that up until login everything worked 
-            num -= amount_bet; // num = 339 
             random = randomize(); 
             bet_str.clear();    
             dealer_random = randomize(); 
@@ -134,6 +133,7 @@ public class Dealer{
         }
         boolean split_occured = true; 
         boolean early_break = true; 
+        boolean double_occured = false; 
         while( !line.equals( "stand" ) ){
             if( line.equals("double")){ 
                 if( amount_bet * 2 > num ){ 
@@ -141,6 +141,7 @@ public class Dealer{
                     break; 
                 }
                 System.out.println( "double has been called!" ); 
+                double_occured = true; 
                 amount_bet *= 2; 
             }
             if( line.equals( "split" ) ){   // not going too deep because i have absolutely no idea what split does can't english 
@@ -152,6 +153,7 @@ public class Dealer{
                 System.out.println( "hit split!" ); 
                 boolean same = false; 
                 split_occured = false; 
+                used_cards.clear(); 
                 String[]temp = used_card.split(":"); 
                 if( temp.length > 4 ){ 
                     dos.writeUTF( "done:cheat more than 2 cards in deck"); 
@@ -172,6 +174,8 @@ public class Dealer{
                 String mock = temp[0]+":"; 
                 random = randomize();
                 mock += cards_name.get(random);
+                used_cards.add(temp[0]); 
+                used_cards.add(cards_name.get(random)); 
                 cards_name.remove(random);
                 cards_value.remove(random); 
                 dealer_random = randomize(); 
@@ -181,6 +185,9 @@ public class Dealer{
                 num -= amount_bet; 
                 int random2 = randomize(); 
                 mock = temp[1] + ":" + cards_name.get(random2); 
+                used_cards.clear(); 
+                used_cards.add(temp[1]); 
+                used_cards.add(cards_name.get(random2)); 
                 cards_name.remove(random2); 
                 cards_value.remove(random2); 
                 dealer_random = randomize();
@@ -211,7 +218,7 @@ public class Dealer{
             }
             if( valid == 21 && dealer_valid != 21 ){ 
                 dos.writeUTF( "status:win:you:blackjack"); 
-                num += (amount_bet + (amount_bet + (amount_bet / 2 ))); 
+                num +=amount_bet + (amount_bet / 2 ); 
                 early_break = false; 
                 break; 
             }
@@ -227,7 +234,8 @@ public class Dealer{
                 dealer_random = randomize(); 
             }
             if( valid > 21 && split_occured ){ 
-                dos.writeUTF( "status:lose:you:"+valid); 
+                dos.writeUTF( "status:lose:you:"+valid);
+                num -= amount_bet; 
                 early_break = false; 
                 break; 
             }
@@ -244,8 +252,9 @@ public class Dealer{
             }
             line = dis.readUTF(); 
         }
-        if( valid > 21 && early_break ){ 
+        if( valid > 21 && early_break && split_occured){ 
             dos.writeUTF("status:lose:you:"+valid); 
+            num -= (amount_bet/2); 
             early_break = false; 
         }
         while( dealer_valid < 17 ){ 
@@ -259,19 +268,20 @@ public class Dealer{
             cards_value.remove(dealer_random); 
             dealer_random = randomize(); 
         }
-        if( valid == dealer_valid && early_break ){ 
+        if( valid == dealer_valid && early_break && split_occured ){ 
             num += amount_bet; 
             dos.writeUTF( "status:push:dealer:"+dealer_valid+":you:"+valid);   
         }
-        if( dealer_valid > 21 && early_break ){ 
-            num += (2*amount_bet); 
+        if( dealer_valid > 21 && early_break && split_occured){ 
+            num += amount_bet; 
             dos.writeUTF( "status:win:dealer bust:"+dealer_valid+":you:"+valid); 
         } 
-        else if( 21 - valid < 21 - dealer_valid && early_break ){ 
+        else if( 21 - valid < 21 - dealer_valid && early_break && split_occured){ 
             dos.writeUTF( "status:win:dealer:"+dealer_valid+":you:"+valid); 
-            num += (2 * amount_bet); 
+            num += amount_bet; 
         }
-        else if( 21 - dealer_valid < 21 - valid && early_break){ 
+        else if( 21 - dealer_valid < 21 - valid && early_break && split_occured){ 
+            num -= amount_bet; 
             dos.writeUTF( "status:lose:dealer:"+dealer_valid+":you:"+valid); 
         }
         valid = 0; 
