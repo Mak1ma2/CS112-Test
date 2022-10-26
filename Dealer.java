@@ -103,6 +103,10 @@ public class Dealer{
             }
             System.out.println(); 
             amount_bet = Integer.parseInt(bet_str.get( 1 )); // reads the bet find meaning that up until login everything worked 
+            if( amount_bet <= 0 ){ 
+                dos.writeUTF("done:cheating invalid bet"); 
+                System.exit(0); 
+            }
             random = randomize(); 
             bet_str.clear();    
             dealer_random = randomize(); 
@@ -133,7 +137,6 @@ public class Dealer{
         }
         boolean split_occured = true; 
         boolean early_break = true; 
-        boolean double_occured = false; 
         while( !line.equals( "stand" ) ){
             if( line.equals("double")){ 
                 if( amount_bet * 2 > num ){ 
@@ -141,7 +144,6 @@ public class Dealer{
                     break; 
                 }
                 System.out.println( "double has been called!" ); 
-                double_occured = true; 
                 amount_bet *= 2; 
             }
             if( line.equals( "split" ) ){   // not going too deep because i have absolutely no idea what split does can't english 
